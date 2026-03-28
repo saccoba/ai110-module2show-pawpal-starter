@@ -2,6 +2,10 @@
 
 You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
 
+## 📸 Demo
+
+<a href="C:\Users\conte\OneDrive\Desktop\Codepathfiles\Sreenshoots\Demo1.png" target="_blank"><img src='C:\Users\conte\OneDrive\Desktop\Codepathfiles\Sreenshoots\Demo1.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+
 ## Scenario
 
 A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
@@ -21,6 +25,89 @@ Your final app should:
 - Generate a daily schedule/plan based on constraints and priorities
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
+
+## Features
+
+**Sorting**
+- **Sort tasks by duration** — Orders all tasks across pets by their time length, shortest-first or longest-first, using `Scheduler.sort_tasks_by_time(ascending)`.
+- **Sort tasks alphabetically** — Orders tasks A–Z by description (case-insensitive) via `Scheduler.sort_tasks_by_description()`.
+- **Sort time strings chronologically** — Converts `HH:MM` strings to minutes-since-midnight and sorts them in clock order via `Scheduler.sort_time_strings()`, correctly handling midnight boundaries like `00:05` vs `23:55`.
+
+**Conflict Detection**
+- **Overlap detection before scheduling** — Before a task is added, `Scheduler.get_conflict_warning()` computes the start and end minute of both the new task and every existing task for the same pet, and returns a plain-language warning if any windows intersect. Adjacent tasks (end == next start) are intentionally allowed.
+- **Live conflict checker in the UI** — The Streamlit app exposes a standalone probe panel so owners can test a time slot without committing to add the task.
+
+**Recurrence**
+- **Daily and weekly auto-requeue** — When `Scheduler.mark_task_complete()` is called on a `daily` or `weekly` task, it marks the original complete and immediately appends a fresh incomplete copy, keeping recurring care routines perpetually in the schedule.
+- **Non-recurring tasks stay single** — Tasks with any other frequency (e.g., `once`) are marked complete without spawning a copy.
+
+**Filtering**
+- **Filter by completion status** — `Scheduler.get_tasks(completed=True/False)` returns only done or only pending tasks across all pets.
+- **Filter by pet** — `Scheduler.get_tasks(pet_name=...)` scopes results to one pet's task list.
+- **Combined filter** — Both parameters can be used together to show, for example, only incomplete tasks for a specific pet.
+
+**Schedule Summary**
+- **Human-readable schedule** — `Scheduler.get_schedule_summary()` walks every pet and task and returns a flat list of formatted strings suitable for display or logging.
+
+## UML Diagram
+
+```mermaid
+classDiagram
+    class Task {
+        +str description
+        +int time
+        +str frequency
+        +Optional[str] start_time
+        +bool completed
+        +mark_complete() None
+        +mark_incomplete() None
+        +update_task(description, time, frequency) None
+        +get_summary() str
+    }
+
+    class Pet {
+        +str name
+        +str species
+        +int age
+        +List[Task] tasks
+        +add_task(task) None
+        +remove_task(description) bool
+        +get_tasks() List[Task]
+        +get_completed_tasks() List[Task]
+        +get_incomplete_tasks() List[Task]
+        +get_pet_summary() str
+    }
+
+    class Owner {
+        +str name
+        +List[Pet] pets
+        +add_pet(pet) None
+        +remove_pet(pet_name) bool
+        +get_pet(pet_name) Optional[Pet]
+        +get_all_tasks() List[Task]
+        +get_owner_summary() str
+    }
+
+    class Scheduler {
+        +Owner owner
+        +get_all_tasks() List[Task]
+        +get_tasks_by_pet(pet_name) List[Task]
+        +get_tasks(completed, pet_name) List[Task]
+        +get_completed_tasks() List[Task]
+        +get_incomplete_tasks() List[Task]
+        +sort_tasks_by_time(ascending) List[Task]
+        +sort_tasks_by_description() List[Task]
+        +sort_time_strings(times) List[str]
+        -_time_str_to_minutes(time_str) int
+        +get_conflict_warning(pet_name, new_task) Optional[str]
+        +mark_task_complete(pet_name, description) bool
+        +get_schedule_summary() List[str]
+    }
+
+    Owner "1" *-- "0..*" Pet : owns
+    Pet "1" *-- "0..*" Task : has
+    Scheduler --> Owner : uses
+```
 
 ## Smarter Scheduling
 

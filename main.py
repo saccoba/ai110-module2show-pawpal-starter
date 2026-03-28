@@ -1,4 +1,11 @@
+from asyncio import all_tasks
+from sched import scheduler
+from turtle import done
+
+import streamlit as st
+from streamlit.config import cat 
 from pawpal_system import Owner, Pet, Task, Scheduler
+import pandas as pd
 
 
 def main():
@@ -58,7 +65,17 @@ def main():
     # Create Scheduler
     # ---------------------------
     # scheduler = Scheduler(owner)
+    all_tasks = scheduler.get_all_tasks()
+    total = len(all_tasks)
+    done = sum(1 for t in all_tasks if t.completed)
+    remaining = total - done
 
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Total Tasks", total)
+    m2.metric("Completed", done)
+    m3.metric("Remaining", remaining)
+
+    st.divider()
     # ---------------------------
     # Add a couple of extra tasks out of immediate priority order
     # ---------------------------
@@ -97,5 +114,5 @@ def main():
     print("\n===========================\n")
 
 
-if __name__ == "__main__":
-    main()
+    if __name__ == "__main__":
+     main()
