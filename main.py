@@ -40,19 +40,59 @@ def main():
     owner.add_pet(cat)
 
     # ---------------------------
+    # Add overlapping tasks and detect conflict
+    # ---------------------------
+    same_time_task1 = Task("Walk dog", 30, "Daily", start_time="09:00")
+    same_time_task2 = Task("Vet check", 30, "Daily", start_time="09:00")
+
+    dog.add_task(same_time_task1)
+
+    scheduler = Scheduler(owner)
+    conflict_warning = scheduler.get_conflict_warning("Buddy", same_time_task2)
+    if conflict_warning:
+        print("\n" + conflict_warning + "\n")
+
+    dog.add_task(same_time_task2)
+
+    # ---------------------------
     # Create Scheduler
     # ---------------------------
-    scheduler = Scheduler(owner)
+    # scheduler = Scheduler(owner)
+
+    # ---------------------------
+    # Add a couple of extra tasks out of immediate priority order
+    # ---------------------------
+    dog.add_task(Task("Evening walk", 45, "Daily"))
+    cat.add_task(Task("Midday nap check", 5, "Daily"))
+
+    # mark some tasks complete for filtering checks
+    dog.tasks[1].mark_complete()  # Feed breakfast done
+    cat.tasks[0].mark_complete()  # Clean litter box done
 
     # ---------------------------
     # Print Today's Schedule
     # ---------------------------
     print("\n===== Today's Schedule =====\n")
-
-    schedule = scheduler.get_schedule_summary()
-
-    for item in schedule:
+    for item in scheduler.get_schedule_summary():
         print(item)
+
+    # ---------------------------
+    # Print Sort by Duration
+    # ---------------------------
+    print("\n===== Tasks Sorted by Time (Ascending) =====\n")
+    for task in scheduler.sort_tasks_by_time(ascending=True):
+        print(task.get_summary())
+
+    # ---------------------------
+    # Print Filtered Tasks
+    # ---------------------------
+    print("\n===== Completed Tasks =====\n")
+    for task in scheduler.get_tasks(completed=True):
+        print(task.get_summary())
+
+    print("\n===== Incomplete Buddy Tasks =====\n")
+    for task in scheduler.get_tasks(pet_name="Buddy", completed=False):
+        print(task.get_summary())
 
     print("\n===========================\n")
 

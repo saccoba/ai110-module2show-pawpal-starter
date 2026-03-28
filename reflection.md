@@ -14,6 +14,13 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+Ans: Owner- This class represent the pet owner using the app, includes; name, available time, preferences.
+Pet-This class represent a pet that nedds care. it includes pet name, pet type or species, age, breed, care notes
+Task- This class represent one care activity. It includes feeding, walking, medication, grooming.
+Schedule- This class represents daily plan. Such as the date, list of tasks, and total time.
+Scheduler- This class was the planning logic, or the brain of the system. It include organized tasks, check time limits, sort them, and  build a daily plan.
+
+
 - What classes did you include, and what responsibilities did you assign to each?
 
 **b. Design changes**
@@ -33,7 +40,10 @@
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+Ans: Scheduler constraints considered: The scheduler already tracks key core constraint and is easy to extend.
 - Why is that tradeoff reasonable for this scenario?
+Ans: I choosed constraints that directly enable basic daily planning first (time, completed status, recurrence), then add guard rails (overlap warning), and postpone richer "soft constraints".
+
 
 ---
 

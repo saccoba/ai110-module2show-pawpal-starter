@@ -10,6 +10,7 @@ class Task:
     description: str
     time: int  # duration in minutes
     frequency: str
+    start_time: Optional[str] = None  # format HH:MM
     completed: bool = False
 
     def mark_complete(self) -> None:
@@ -140,6 +141,17 @@ class Scheduler:
             return []
         return pet.get_tasks()
 
+    def get_tasks(self, completed: Optional[bool] = None, pet_name: Optional[str] = None) -> List[Task]:
+        """Filter tasks by completion status and/or pet name."""
+        tasks = self.get_all_tasks()
+        if pet_name is not None:
+            tasks = self.get_tasks_by_pet(pet_name)
+
+        if completed is not None:
+            tasks = [task for task in tasks if task.completed == completed]
+
+        return tasks
+
     def get_completed_tasks(self) -> List[Task]:
         """Get all completed tasks across all pets."""
         return [task for task in self.get_all_tasks() if task.completed]
@@ -149,15 +161,79 @@ class Scheduler:
         return [task for task in self.get_all_tasks() if not task.completed]
 
     def sort_tasks_by_time(self, ascending: bool = True) -> List[Task]:
-        """Return tasks sorted by duration."""
+        """Return tasks sorted by duration using task.time as key."""
         return sorted(self.get_all_tasks(), key=lambda task: task.time, reverse=not ascending)
 
     def sort_tasks_by_description(self) -> List[Task]:
         """Return tasks sorted alphabetically by description."""
         return sorted(self.get_all_tasks(), key=lambda task: task.description.lower())
 
+    def sort_time_strings(self, times: List[str]) -> List[str]:
+        """Sort a list of 'HH:MM' formatted time strings.
+
+        Args:
+            times: List of time strings in 24-hour format (e.g. '09:30', '17:15').
+
+        Returns:
+            List[str]: New list sorted in chronological order.
+        """
+        return sorted(times, key=lambda s: tuple(map(int, s.split(':'))))
+
+    def _time_str_to_minutes(self, time_str: str) -> int:
+        """Convert an 'HH:MM' string into minutes since midnight.
+
+        Args:
+            time_str: Time string in 24-hour format.
+
+        Returns:
+            int: Number of minutes from 00:00.
+        """
+        hours, minutes = map(int, time_str.split(":"))
+        return hours * 60 + minutes
+
+    def get_conflict_warning(self, pet_name: str, new_task: Task) -> Optional[str]:
+        """Check if the new task overlaps with existing tasks for the same pet.
+
+        This method performs lightweight conflict detection that returns a warning
+        message when tasks overlap, without raising an exception.
+
+        Args:
+            pet_name: Name of the pet whose schedule is checked.
+            new_task: New Task to validate (must include start_time).
+
+        Returns:
+            Optional[str]: Warning message if conflict exists, otherwise None.
+        """
+        if new_task.start_time is None:
+            return None
+
+        pet = self.owner.get_pet(pet_name)
+        if pet is None:
+            return None
+
+        new_start = self._time_str_to_minutes(new_task.start_time)
+        new_end = new_start + new_task.time
+
+        for existing_task in pet.tasks:
+            if existing_task.start_time is None:
+                continue
+            existing_start = self._time_str_to_minutes(existing_task.start_time)
+            existing_end = existing_start + existing_task.time
+
+            if new_start < existing_end and existing_start < new_end:
+                return (
+                    f"Warning: task '{new_task.description}' ({new_task.start_time}) "
+                    f"conflicts with '{existing_task.description}' "
+                    f"({existing_task.start_time})."
+                )
+
+        return None
+
     def mark_task_complete(self, pet_name: str, description: str) -> bool:
-        """Mark a task complete for a given pet."""
+        """Mark a task complete for a given pet.
+
+        If the task is recurring (daily/weekly), automatically create the next instance.
+        """
         pet = self.owner.get_pet(pet_name)
         if pet is None:
             return False
@@ -165,8 +241,45 @@ class Scheduler:
         for task in pet.tasks:
             if task.description.lower() == description.lower():
                 task.mark_complete()
+
+                if task.frequency.lower() in ["daily", "weekly"]:
+                    next_task = Task(task.description, task.time, task.frequency)
+                    pet.add_task(next_task)
+
                 return True
         return False
+
+    def _time_str_to_minutes(self, time_str: str) -> int:
+        """Convert HH:MM time string to minutes since midnight."""
+        hours, minutes = map(int, time_str.split(":"))
+        return hours * 60 + minutes
+
+    def get_conflict_warning(self, pet_name: str, new_task: Task) -> Optional[str]:
+        """Return warning message if new_task conflicts with existing tasks; otherwise None."""
+        if new_task.start_time is None:
+            return None
+
+        pet = self.owner.get_pet(pet_name)
+        if pet is None:
+            return None
+
+        new_start = self._time_str_to_minutes(new_task.start_time)
+        new_end = new_start + new_task.time
+
+        for existing_task in pet.tasks:
+            if existing_task.start_time is None:
+                continue
+            existing_start = self._time_str_to_minutes(existing_task.start_time)
+            existing_end = existing_start + existing_task.time
+
+            if new_start < existing_end and existing_start < new_end:
+                return (
+                    f"Warning: task '{new_task.description}' ({new_task.start_time}) "
+                    f"conflicts with '{existing_task.description}' "
+                    f"({existing_task.start_time})."
+                )
+
+        return None
 
     def get_schedule_summary(self) -> List[str]:
         """Return a simple text summary of all tasks."""

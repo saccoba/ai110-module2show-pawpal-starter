@@ -1,4 +1,11 @@
 import streamlit as st
+from pawpal_system import Owner, Pet, Task, Scheduler
+
+# Initialized Owner only once
+if "owner" not in st.session_state:
+    st.session_state.owner = Owner("Default Owner")
+
+owner = st.session_state.owner
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 

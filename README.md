@@ -22,6 +22,15 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Smarter Scheduling
+
+PawPal+ includes several intelligent scheduling features built into the `Scheduler` class:
+
+- **Conflict detection** — Before adding a task, `get_conflict_warning()` checks whether the new task's time window overlaps with any existing task for the same pet, returning a plain-language warning instead of silently double-booking.
+- **Recurring task auto-creation** — When a `daily` or `weekly` task is marked complete via `mark_task_complete()`, the scheduler automatically queues the next instance so recurring care routines are never dropped.
+- **Chronological time sorting** — `sort_time_strings()` and the internal `_time_str_to_minutes()` helper ensure tasks can always be ordered by actual clock time (HH:MM), not alphabetically.
+- **Flexible task filtering** — `get_tasks()` accepts optional `completed` and `pet_name` filters, making it easy to show only what's relevant (e.g., today's incomplete tasks for a specific pet).
+
 ## Getting started
 
 ### Setup
