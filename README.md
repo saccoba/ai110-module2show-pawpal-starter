@@ -50,3 +50,38 @@ pip install -r requirements.txt
 5. Add tests to verify key behaviors.
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
+
+# Testing PawPal+
+python -m pytest
+Test Coverage Summary
+The test suite a core functionality of the Pawpal system across multiple components:
+1. Task Functionality
+	•	Tested creating tasks with correct attributes
+	•	Verified mark_complete() correctly updates task status
+	•	Ensured task updates and summaries behave as expected
+⸻
+2. Pet Management
+	•	Tested adding tasks to a pet
+	•	Verified task lists update correctly
+	•	Checked retrieval of tasks (all, completed, incomplete)
+⸻
+3. Owner Management
+	•	Tested adding and retrieving pets
+	•	Verified aggregation of tasks across multiple pets
+⸻
+4. Scheduler Logic
+	•	Tested retrieving all tasks from the system
+	•	Verified sorting tasks by time (chronological order)
+	•	Checked filtering of tasks (by status or pet)
+	•	Ensured schedule summaries are generated correctly
+⸻
+5. Advanced Scheduling Features
+	•	Verified sorting correctness (tasks ordered properly by time)
+	•	Tested conflict detection (identifying overlapping or duplicate time tasks)
+	•	Ensured correct behavior for empty schedules
+
+My confidence level in the system reliability is a 5 star, as all my test where passed, no failures or errors. 
+Wide coverage i.e tasks, pet, owner, scheduler, sorting, conflicts.
+Edge cases were included i.e empty scheduler, sorting, conflicts.
+Working Integration i.e your system + test + logic all alligned.
+Debugged real issues i.e path test, imports.
